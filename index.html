@@ -17,6 +17,127 @@
             
         </main>
     </div>
+    <script>
+        const styleOptions = {
+            // Add styleOptions to customize Web Chat canvas
+            hideUploadButton: true,
+            emojiSet: true,
+            backgroundColor: '#eee',
+            botAvatarInitials: 'PVA',
+            accent: '#00809d',
+
+            //Suggested Actions
+            suggestedActionLayout: 'carousel', //other option is horizontally: 'stacked'
+            suggestedActionBackground: 'White',
+            suggestedActionBorderColor: undefined,
+            suggestedActionBorderRadius: 10,
+            suggestedActionBorderStyle: 'none',
+            suggestedActionBorderWidth: 2,
+            suggestedActionDisabledBackground: '#fff',
+            suggestedActionDisabledBorderColor: '#fff',
+            suggestedActionDisabledBorderStyle: 'solid',
+            suggestedActionDisabledBorderWidth: 2,
+            suggestedActionDisabledTextColor: undefined,
+            suggestedActionHeight: 40,
+            suggestedActionImageHeight: 20,
+            suggestedActionTextColor: undefined,
+
+            //Bot Avatar
+            botAvatarBackgroundColor: "#FFFFFF",
+            botAvatarImage: 'https://service.vic.gov.au/-/media/771616c32a624b7abc957d71d64ac46c.svg?h=50&iar=0&w=70&hash=FE013D959FE549F8134C0BC0B06426D0',
+            userAvatarImage: 'https://avatars.githubusercontent.com/u/661465',
+
+            //Bubbles
+            bubbleBackground: 'White',
+            bubbleBorderColor: 'White',
+            bubbleTextColor: 'Black',
+            bubbleBorderRadius: 10,
+            bubbleFromUserBackground: '#023369',
+            bubbleFromUserBorderColor: '#023369',
+            bubbleFromUserTextColor: 'White',
+            bubbleFromUserBorderRadius: 10
+        };
+        async function checkAgentAvailability() {
+            //const queryParams = "?org_id=00D7F000000pPLT&deployment_id=5724a000000005j&Availability.ids=[5737F000000g8tM]";
+            //const reqOptions = {
+            //url: `https://d.la11-core1.sfdc-vwfla6.salesforceliveagent.com/chat/rest/${queryParams}`,
+            // method: 'GET',
+            //headers: {
+            //   'X-LIVEAGENT-AFFINITY': 'null',
+            //   'X-LIVEAGENT-API-VERSION': '42',
+            //  'Accept': 'application/json',
+            //   'Content-Type': 'application/json'
+            // }
+            // }; 
+            const reqOptions = {
+                url: "https://66e40f84d2405277ed12e60b.mockapi.io/sfapi/messages",
+                method: 'GET',
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                }
+            };
+            try {
+                const response = await fetch(reqOptions.url);
+                const result = await response.json();
+
+                for (const message of result[0].messages) {
+                    if (message.type === "Availability") {
+                        const results = message.message.results;
+                        for (const res of results) {
+                            if (res.isAvailable === true) {
+                                return true;  // Exiting the function early
+                            }
+                        }
+                    }
+                }
+                return false
+            } catch (error) {
+                console.error("Error checking agent availability:", error);
+                return false;
+            }
+        }
+
+        // Function to initialize and embed Salesforce Live Agent chat if available
+        function startLiveAgentChat() {
+            const rndId = Math.floor(Math.random()*1000);
+            const onloadCode = `
+        try {
+            window.top.liveagent.addCustomDetail('vaBody_c', decodeURI('(16:13:51)%20User:%20talk%20to%20agent\\n(16:13:51)%20Vicky:%20Before%20I%20pass%20you%20on%20to%20our%20Customer%20Experience%20team,%20I%20want%20to%20see%20if%20I%20can%20help.%20Can%20you%20tell%20me%20a%20little%20bit%20more%20about%20your%20enquiry?\\n(16:13:57)%20User:%20talk%20to%20agent\\n')).saveToTranscript('vaBody__c');
+            window.top.liveagent.addCustomDetail('Agent','5737F000000g8tM');
+            window.top.liveagent.findOrCreate('Case').map('Subject','Case Subject',true,false,true).map('Agent','Agent');
+            window.top.liveagent.init('https://d.la11-core1.sfdc-vwfla6.salesforceliveagent.com/chat', '5724a000000005j', '00D7F000000pPLT');
+            window.top.liveagent.showWhenOnline('5737F000000g8tM', window.top.document.getElementById('liveagentlink${rndId}'));
+        } catch(err) {
+            window.top.document.getElementById('liveagentlink${rndId}').style.display = 'block';
+        }`;
+
+        // Create an iframe element
+        var iframeTag = document.createElement('iframe');
+        iframeTag.width = '600';
+        iframeTag.height = '400';
+        iframeTag.style.border = 'none';
+        iframeTag.onload = function() { eval(onloadCode); };
+
+        // Append the iframeTag to the container
+        window.top.document.getElementById('testHtml').appendChild(iframeTag);
+            const myTimeout = setTimeout(function () {
+                window.top.liveagent.startChat('5737F000000g8tM');
+                clearTimeout(myTimeout);
+}, 1000);
+
+            
+        }
+         // Function to handle the live agent transfer process
+         async function transferToLiveAgent() {
+            const isAgentAvailable = await checkAgentAvailability();
+            if (isAgentAvailable) {
+                startLiveAgentChat();
+            } else {
+                alert("No agents are available at the moment. Please try again later.");
+            }
+        }
+    </script>
  
     <footer>
         <p>&copy; 2024 My Website. All rights reserved.</p>
